@@ -100,47 +100,27 @@ protected:
 };
 
 
-
-// this is the integral of the sqrt-formed discrete delta function described
-// in Peskin (The immersed boundary method, Acta Numerica 11:479--517, 2002)
-inline
-double
-discrete_heaviside (const double x)
-{
-  if (x > 0)
-    return 1.-discrete_heaviside(-x);
-  else if (x < -2.)
-    return 0;
-  else if (x < -1.)
-    {
-      return (1./8. * (5.*x+x*x) + 1./32. * (-3.-2.*x) *
-              std::sqrt(-7.-12.*x-4.*x*x) -
-              1./16 * std::asin(std::sqrt(2.)*(x+3./2.)) +
-              23./32. - numbers::PI/64.);
-    }
-  else
-    {
-      return (1./8. * (3.*x+x*x) - 1./32. * (-1.-2.*x) *
-              std::sqrt(1.-4.*x-4.*x*x) +
-              1./16 * std::asin(std::sqrt(2.)*(x+1./2.)) +
-              15./32. - numbers::PI/64.);
-    }
+/*--- Auxiliary sign function ---*/
+template<typename T> int sgn(T val) {
+  return (T(0) < val) - (val < T(0));
 }
 
 
-// and this is the actual delta function from Peskin
-inline
-double
-discrete_delta (const double x)
-{
-  if (x > 0)
-    return discrete_delta(-x);
-  else if (x < -2.)
-    return 0;
-  else if (x < -1.)
-    return 1./8. * (5.+2.*x - std::sqrt(-7.-12.*x-4.*x*x));
-  else
-    return 1./8. * (3.+2.*x + std::sqrt(1.-4.*x-4.*x*x));
+/*--- Discrete Heaviside function ---*/
+inline double discrete_heaviside(const double x, const double eps = 0.025) {
+  const double pi = std::atan(1)*4.0;
+
+  res = std::fabs(x) <= eps ? 0.5*(1.0 + x/eps + 1/pi*std::sin(pi*x/eps)) : (sgn(x) + 1.0)/2.0;
+  return res;
+}
+
+
+/*--- Discrete delta function (actually it is just the derivative of the discrete Heaviside)---*/
+inline double discrete_delta(const double x, const double eps = 0.025) {
+  const double pi = std::atan(1)*4.0;
+
+  res = std::fabs(x) <= eps ? 1.0/(2.0*eps)*(1.0 + std::cos(pi*x/eps)) : 0.0;
+  return res;
 }
 
 
